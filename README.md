@@ -17,14 +17,17 @@ const Store = createStore(reducer);
 - `state`와 `action`을 인자로 받는다.
 - `action`에 따라 `state`를 변경하여 리턴한다.
   - `action`은 `dispatch`가 보내는 트리거에 따라 동작한다.
+- 리턴하는 `state`를 `mutating`해서는 안 된다.
+  - `state.push("b")` - X
+  - `[...state, {state:"b"}]` - O
 
 ```javascript
 const reducer = (state, action) => {
   switch (action.type) {
     case "A_type":
-      return `change A ${state}`;
+      return [...state, { state: `change A ${state}` }];
     case "B_type":
-      return `change B ${state}`;
+      return [...state, { state: `change B ${state}` }];
     default:
       return `not change ${state}`;
   }

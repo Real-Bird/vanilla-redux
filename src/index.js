@@ -1,47 +1,78 @@
 import { legacy_createStore as createStore } from "redux";
 
-const add = document.getElementById("add");
-const minus = document.getElementById("minus");
-const number = document.querySelector("span");
+const form = document.querySelector("form");
+const input = document.querySelector("input");
+const ul = document.querySelector("ul");
 
-const ADD = "ADD";
-const MINUS = "MINUS";
+const ADD_TODO = "ADD_TODO";
+const DELETE_TODO = "DELETE_TODO";
 
-/**
- * @param {Object} countModifier - 상태를 변화시키는 reducer이다.
- * @param {number} count - 상태 파라미터이다.
- * @param {Object} action - dispatch로 불러온 type에 해당하는 함수를 실행한다.
- * @return {number} reducer 내부에서 변경된 데이터가 현재 state로 변경된다.
- */
-const countModifier = (count = 0, action) => {
+const addTodo = (text) => {
+  return {
+    type: ADD_TODO,
+    text,
+  };
+};
+
+const deleteTodo = (id) => {
+  return {
+    type: DELETE_TODO,
+    id,
+  };
+};
+
+const reducer = (state = [], action) => {
   switch (action.type) {
-    case ADD:
-      return count + 1;
-    case MINUS:
-      return count - 1;
+    case ADD_TODO:
+      const newTodoObj = { text: action.text, id: Date.now() };
+      return [newTodoObj, ...state];
+    case DELETE_TODO:
+      const cleaned = state.filter((toDo) => toDo.id !== action.id);
+      return cleaned;
     default:
-      return count;
+      return state;
   }
 };
 
-const countStore = createStore(countModifier);
+const store = createStore(reducer);
 
-/**
- * @inner
- * @param
- */
-const onChange = () => {
-  number.innerText = countStore.getState();
+store.subscribe(() => console.log(store.getState()));
+
+const dispatchAddTodo = (text) => {
+  store.dispatch(addTodo(text));
 };
 
-/**
- * reducer가 동작할 때마다 state 변화를 감지하는 함수
- * @param {Object} onChange - 변화 시 동작하는 함수
- */
-countStore.subscribe(onChange);
+const dispatchDeleteTodo = (event) => {
+  const {
+    target: {
+      parentNode: { id },
+    },
+  } = event;
+  store.dispatch(deleteTodo(+id));
+};
 
-/**
- * @param {Object} dispatch - reducer가 실행할 action을 호출하는 함수이다.
- */
-add.addEventListener("click", () => countStore.dispatch({ type: ADD }));
-minus.addEventListener("click", () => countStore.dispatch({ type: MINUS }));
+const paintTodos = () => {
+  const toDos = store.getState();
+  ul.innerHTML = "";
+  toDos.forEach((toDo) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.innerText = "DEL";
+    btn.addEventListener("click", dispatchDeleteTodo);
+    li.id = toDo.id;
+    li.innerText = toDo.text;
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+};
+
+store.subscribe(paintTodos);
+
+const onSubmit = (event) => {
+  event.preventDefault();
+  const toDo = input.value;
+  input.value = "";
+  dispatchAddTodo(toDo);
+};
+
+form.addEventListener("submit", onSubmit);
