@@ -23,6 +23,7 @@ function Home({ toDos, addToDo }) {
           type="text"
           placeholder="Write to do"
         />
+        <button type="submit">ADD</button>
       </form>
       <ul>
         {toDos?.map((toDo) => (
